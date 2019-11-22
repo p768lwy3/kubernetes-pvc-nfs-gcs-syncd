@@ -1,0 +1,67 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: airflow-dags-nfs-gcs-syncd
+  namespace: airflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: airflow-dags-nfs-gcs-syncd
+  template:
+    metadata:
+      labels:
+        role: airflow-dags-nfs-gcs-syncd
+    spec:
+      containers:
+      - name: gcs-syncd
+        image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "/mnt/script/script.sh"]
+        volumeMounts:
+        - mountPath: /mnt/data
+          name: persistent-volume
+        - mountPath: /mnt/script/script.sh
+          subPath: script.sh
+          name: gcs-syncd-configmap
+      volumes:
+      - name: persistent-volume
+        persistentVolumeClaim:
+          claimName: airflow-dags-nfs-persistent-volume-claim
+      - name: gcs-syncd-configmap
+        configMap:
+          name: airflow-dags-nfs-gcs-syncd-configmap
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: airflow-logs-nfs-gcs-syncd
+  namespace: airflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: airflow-logs-nfs-gcs-syncd
+  template:
+    metadata:
+      labels:
+        role: airflow-logs-nfs-gcs-syncd
+    spec:
+      containers:
+      - name: gcs-syncd
+        image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "/mnt/script/script.sh"]
+        volumeMounts:
+        - mountPath: /mnt/data
+          name: persistent-volume
+        - mountPath: /mnt/script/script.sh
+          subPath: script.sh
+          name: gcs-syncd-configmap
+      volumes:
+      - name: persistent-volume
+        persistentVolumeClaim:
+          claimName: airflow-logs-nfs-persistent-volume-claim
+      - name: gcs-syncd-configmap
+        configMap:
+          name: airflow-logs-nfs-gcs-syncd-configmap

@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: airflow-dags-gsyncd-nfs-tester
+  namespace: airflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: airflow-dags-gsyncd-nfs-tester
+  template:
+    metadata:
+      labels:
+        role: airflow-dags-gsyncd-nfs-tester
+    spec:
+      containers:
+      - name: busybox
+        image: busybox
+        imagePullPolicy: IfNotPresent
+        command:
+          - sh
+          - -c
+          - 'while true; do sleep $(($RANDOM % 5 + 5)); ls -lah /mnt/data;  done'
+        volumeMounts:
+        - mountPath: /mnt/data
+          name: nfs-persistent-volume
+      volumes:
+      - name: nfs-persistent-volume
+        persistentVolumeClaim:
+          claimName: airflow-dags-gsyncd-nfs-persistent-volume-claim

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-dags-nfs-gcs-syncd-configmap
+  namespace: airflow
+data:
+  script.sh: |
+    while true
+    do
+      gsutil -m rsync -c -C -d -e -R -U gs://airflow-dags-nfs /mnt/data
+    sleep 3
+    done
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airflow-logs-nfs-gcs-syncd-configmap
+  namespace: airflow
+data:
+  script.sh: |
+    while true
+    do
+      gsutil -m rsync -c -C -d -e -R -U gs://airflow-logs-nfs /mnt/data
+    sleep 3
+    done

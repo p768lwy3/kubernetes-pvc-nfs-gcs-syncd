@@ -1,0 +1,59 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "gsyncd.fullname" . }}-nfs-gcs-syncd
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ template "gsyncd.name" . }}-nfs-gcs-syncd
+    chart: {{ template "gsyncd.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ template "gsyncd.name" . }}-nfs-gcs-syncd
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "gsyncd.name" . }}-nfs-gcs-syncd
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: gcs-syncd
+        image: gcr.io/google.com/cloudsdktool/cloud-sdk:latest
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "/mnt/script/script.sh"]
+        volumeMounts:
+        - mountPath: /mnt/data
+          name: persistent-volume
+        - mountPath: /mnt/script/script.sh
+          subPath: script.sh
+          name: gcs-syncd-configmap
+      volumes:
+      - name: persistent-volume
+        persistentVolumeClaim:
+          claimName: {{ template "gsyncd.fullname" . }}-nfs-persistent-volume-claim
+      - name: gcs-syncd-configmap
+        configMap:
+          name: {{ template "gsyncd.fullname" . }}-nfs-gcs-syncd-configmap
